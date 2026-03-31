@@ -1,0 +1,85 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum ArticleStatus {
+  DRAFT
+  REVIEW
+  PUBLISHED
+  ARCHIVED
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  EDITOR
+  WRITER
+  VIEWER
+}
+
+model User {
+  id        String    @id @default(cuid())
+  email     String    @unique
+  password  String
+  name      String
+  role      UserRole  @default(WRITER)
+  active    Boolean   @default(true)
+  createdAt DateTime  @default(now())
+
+  articles  Article[] @relation("ArticleAuthor")
+
+  @@map("users")
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?
+  icon        String?
+  order       Int       @default(0)
+  active      Boolean   @default(true)
+
+  articles    Article[]
+
+  @@map("categories")
+}
+
+model Article {
+  id           String        @id @default(cuid())
+  title        String
+  slug         String        @unique
+  content      String
+  excerpt      String?
+  metaTitle    String?
+  metaDesc     String?
+  status       ArticleStatus @default(DRAFT)
+  views        Int           @default(0)
+  helpful      Int           @default(0)
+  notHelpful   Int           @default(0)
+  featured     Boolean       @default(false)
+  publishedAt  DateTime?
+
+  categoryId   String
+  category     Category      @relation(fields: [categoryId], references: [id])
+
+  authorId     String
+  author       User          @relation("ArticleAuthor", fields: [authorId], references: [id])
+
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([categoryId])
+  @@index([slug])
+  @@index([status])
+
+  @@map("articles")
+}

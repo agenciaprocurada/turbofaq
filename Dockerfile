@@ -50,8 +50,6 @@ COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 RUN mkdir -p /app/public/uploads/images
 RUN chown -R nextjs:nodejs /app/public/uploads
 
-USER nextjs
-
 EXPOSE 3000
 
 CMD ["node", "server.js"]

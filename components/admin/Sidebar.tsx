@@ -23,6 +23,7 @@ const navLinks = [
   { href: '/admin', label: 'Dashboard', icon: '◈' },
   { href: '/admin/artigos', label: 'Artigos', icon: '✎' },
   { href: '/admin/categorias', label: 'Categorias', icon: '⊞' },
+  { href: '/admin/scraper', label: 'Importador', icon: '⚡' },
 ]
 
 const superAdminLinks = [

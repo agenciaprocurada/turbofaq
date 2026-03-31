@@ -1,53 +1,52 @@
-FROM node:20-alpine AS base
+FROM node:20-slim AS base
 
-# Fase 1: Instalando dependências (inclui pacotes para o Prisma funcionar no Alpine)
+# Fase 1: Dependências
 FROM base AS deps
-RUN apk add --no-cache libc6-compat openssl
+RUN apt-get update -y && apt-get install -y openssl ca-certificates
 WORKDIR /app
 
 COPY package.json package-lock.json* ./
 RUN npm ci
 
-# Fase 2: Construindo o projeto (build)
+# Fase 2: Build
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Gerar o cliente Prisma
+# Variáveis fakes de build para passar nas rotas estáticas (caso o painel não as inejte no build)
+ENV DATABASE_URL="postgresql://fake:fake@localhost:5432/fake"
+ENV NEXT_PUBLIC_SUPABASE_URL="https://fake.supabase.co"
+ENV NEXT_PUBLIC_SUPABASE_ANON_KEY="fake"
+
+# Gerar Prisma Client com os binários para Debian (node-slim)
 RUN npx prisma generate
 
-# Variáveis desnecessárias no Next.js (desativa telemetria para build mais rápido)
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NEXT_TELEMETRY_DISABLED=1
 
-# Faz o build do Next.js no modo standalone (já configurado no seu next.config.js)
 RUN npm run build
 
-# Fase 3: Imagem de Produção (limpa e leve)
+# Fase 3: Runner
 FROM base AS runner
 WORKDIR /app
 
-RUN apk add --no-cache openssl
+RUN apt-get update -y && apt-get install -y openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 
-ENV NODE_ENV production
-ENV NEXT_TELEMETRY_DISABLED 1
-ENV PORT 3000
-ENV HOSTNAME "0.0.0.0"
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
 
-# Cria usuário não-root por segurança
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
 RUN mkdir .next
 RUN chown nextjs:nodejs .next
 
-# Copia do builder os artefatos baseados no "output: standalone"
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
-# === Importante para o TurboFAQ ===
-# Cria os diretórios de upload já com permissão para o usuário Next.js gravar imagens
 RUN mkdir -p /app/public/uploads/images
 RUN chown -R nextjs:nodejs /app/public/uploads
 
@@ -55,5 +54,4 @@ USER nextjs
 
 EXPOSE 3000
 
-# server.js entra em ação via recurso standalone do Next.js
 CMD ["node", "server.js"]

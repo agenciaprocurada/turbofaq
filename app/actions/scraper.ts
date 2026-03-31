@@ -4,8 +4,6 @@ import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { slugify } from '@/lib/slugify'
 import * as cheerio from 'cheerio'
-import { JSDOM } from 'jsdom'
-import { Readability } from '@mozilla/readability'
 
 function isValidArticleLink(href: string, baseUrl: string) {
   try {
@@ -86,16 +84,21 @@ export async function importArticle(targetUrl: string, categoryId: string) {
     })
     const html = await res.text()
 
-    const doc = new JSDOM(html, { url: targetUrl })
-    const reader = new Readability(doc.window.document)
-    const article = reader.parse()
+    const $ = cheerio.load(html)
+    
+    // Heurística do Título do Artigo
+    const title = $('h1.entry-title').text() || $('article h1').text() || $('h1').first().text() || $('title').text()
 
-    if (!article || !article.title || !article.content) {
-      throw new Error('Não foi possível extrair o conteúdo principal dessa página.')
+    // Heurística de Conteúdo: entry-content, post-content ou pega o html inteiro do article
+    let content = $('.entry-content').html() || $('.post-content').html() || $('article').html()
+    if (!content) content = $('body').text() // Fallback super simples
+
+    if (!title || !content) {
+      throw new Error('Não foi possível extrair o conteúdo principal dessa página usando heurística leve.')
     }
 
-    // Gerar um slug seguro do título
-    let slug = slugify(article.title)
+    // Gerar um slug seguro
+    let slug = slugify(title)
     
     // Garantir slug único
     const exists = await prisma.article.findUnique({ where: { slug } })
@@ -104,15 +107,14 @@ export async function importArticle(targetUrl: string, categoryId: string) {
     }
 
     // Gerar um resumo/excerpt automático se Readability não pegar
-    let excerpt = article.excerpt || ''
-    if (excerpt.length > 200) excerpt = excerpt.substring(0, 197) + '...'
+    let excerpt = $('meta[name="description"]').attr('content') || content.substring(0, 197).replace(/<[^>]*>?/gm, '') + '...'
 
     // Salvar como DRAFT (Rascunho) conforme a regra
     const created = await prisma.article.create({
       data: {
-        title: article.title,
+        title: title,
         slug,
-        content: article.content, // HTML limpo extraído pelo Readability
+        content: content, 
         excerpt,
         status: 'DRAFT',
         categoryId,

@@ -788,7 +788,7 @@ ol {
 
 /* 16. Hub hero --------------------------------------------- */
 .hub-hero {
-  background: var(--color-primary);
+  background: #333333;
   padding: 64px 0 56px;
   text-align: center;
 }

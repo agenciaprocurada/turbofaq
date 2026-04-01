@@ -1,7 +1,13 @@
+'use client'
+
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import SearchBar from '@/components/public/SearchBar'
 
 export default function Header() {
+  const pathname = usePathname()
+  const isHome = pathname === '/'
+
   return (
     <header className="site-header">
       <div className="container">
@@ -10,11 +16,13 @@ export default function Header() {
             Turbo<span>Cloud</span> Ajuda
           </Link>
 
-          <div className="site-header__center">
-            <div className="site-header__search">
-              <SearchBar />
+          {!isHome && (
+            <div className="site-header__center">
+              <div className="site-header__search">
+                <SearchBar />
+              </div>
             </div>
-          </div>
+          )}
 
           <a
             href="https://turbocloud.com.br"

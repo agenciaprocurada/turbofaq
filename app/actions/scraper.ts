@@ -86,15 +86,25 @@ export async function importArticle(targetUrl: string, categoryId: string) {
 
     const $ = cheerio.load(html)
     
-    // Heurística do Título do Artigo
-    const title = $('h1.entry-title').text() || $('article h1').text() || $('h1').first().text() || $('title').text()
+    // Heurística de Título Específica para WP/Plugins como BetterDocs
+    let title = $('.betterdocs-entry-title').text() || $('h1.entry-title').text() || $('h1.post-title').text() || $('article h1').text()
+    if (!title || title.trim() === '') {
+       // Pega o primeiro h1 da página, mas remove espaços
+       title = $('h1').first().text()
+    }
+    // Prevenção contra barra de busca global
+    if (title.trim().toLowerCase().includes('qual sua dúvida')) {
+       title = $('title').text().replace(/\|.*/, '') // Pega a tag title limpa
+    }
+    title = title.trim()
 
-    // Heurística de Conteúdo: entry-content, post-content ou pega o html inteiro do article
-    let content = $('.entry-content').html() || $('.post-content').html() || $('article').html()
-    if (!content) content = $('body').text() // Fallback super simples
+    let content = $('.betterdocs-content').html() || $('.betterdocs-entry-content').html() || $('.betterdocs-content-area').html() || $('.elementor-widget-theme-post-content').html() || $('.entry-content').html() || $('.post-content').html() || $('article').html()
+    if (!content) {
+       content = $('main').html() || $('body').text() 
+    }
 
     if (!title || !content) {
-      throw new Error('Não foi possível extrair o conteúdo principal dessa página usando heurística leve.')
+      throw new Error('Não foi possível extrair o conteúdo principal dessa página com precisão.')
     }
 
     // Gerar um slug seguro

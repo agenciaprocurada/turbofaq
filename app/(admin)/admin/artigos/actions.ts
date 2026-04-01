@@ -90,3 +90,32 @@ export async function saveArticle(data: {
     return { success: true, articleId: created.id }
   }
 }
+
+/**
+ * Exclui múltiplos artigos permanentemente
+ */
+export async function deleteArticles(ids: string[]) {
+  const session = await auth()
+  if (!session || session.user.role === 'VIEWER') {
+    throw new Error('Permissão negada.')
+  }
+
+  // Se for redator, só pode apagar os próprios artigos
+  if (session.user.role === 'WRITER') {
+    await prisma.article.deleteMany({
+      where: {
+        id: { in: ids },
+        authorId: session.user.id
+      }
+    })
+  } else {
+    await prisma.article.deleteMany({
+      where: {
+        id: { in: ids }
+      }
+    })
+  }
+
+  revalidatePath('/admin/artigos')
+  return { success: true }
+}

@@ -82,3 +82,90 @@ export async function deleteMedias(pathFragments: string[]) {
 
   return { success: true }
 }
+
+/**
+ * Converte uma imagem para WebP (qualidade 85%) e substitui o caminho antigo
+ * em todos os artigos que a referenciam no banco de dados.
+ */
+export async function convertToWebp(pathFragment: string): Promise<{ newUrl: string; updatedArticles: number }> {
+  const session = await auth()
+  if (!session || session.user.role === 'VIEWER') {
+    throw new Error('Permissão negada.')
+  }
+
+  // Rejeita tentativas de path traversal
+  if (pathFragment.includes('..')) {
+    throw new Error('Caminho inválido.')
+  }
+
+  // Lazy-import do sharp e prisma (evita bundling incorreto)
+  const sharp = (await import('sharp')).default
+  const { prisma } = await import('@/lib/prisma')
+  const { writeFile, unlink } = await import('fs/promises')
+  const { join, parse, dirname } = await import('path')
+  const { existsSync } = await import('fs')
+
+  const baseUploadDir = join(process.cwd(), 'public', 'uploads', 'images')
+  const originalPath = join(baseUploadDir, pathFragment)
+
+  if (!existsSync(originalPath)) {
+    throw new Error('Arquivo não encontrado no servidor.')
+  }
+
+  // Se já for WebP, não converte de novo
+  if (pathFragment.toLowerCase().endsWith('.webp')) {
+    throw new Error('Esta imagem já está em formato WebP.')
+  }
+
+  // Gera novo caminho com extensão .webp
+  const parsed = parse(originalPath)
+  const webpFilename = parsed.name + '.webp'
+  const webpPath = join(parsed.dir, webpFilename)
+
+  // Cria o fragmento relativo do novo arquivo
+  const relDir = dirname(pathFragment)
+  const newPathFragment = (relDir === '.' ? '' : relDir + '/') + webpFilename
+  const oldUrl = `/uploads/images/${pathFragment}`
+  const newUrl = `/uploads/images/${newPathFragment}`
+
+  // Converte com sharp
+  const webpBuffer = await sharp(originalPath)
+    .webp({ quality: 85 })
+    .toBuffer()
+
+  // Salva o novo arquivo .webp
+  await writeFile(webpPath, webpBuffer)
+
+  // Substitui referência em TODOS os artigos que contêm a URL antiga
+  const articlesWithOldUrl = await prisma.article.findMany({
+    where: {
+      OR: [
+        { content: { contains: oldUrl } },
+        { excerpt: { contains: oldUrl } },
+      ]
+    },
+    select: { id: true, content: true, excerpt: true }
+  })
+
+  let updatedArticles = 0
+  for (const article of articlesWithOldUrl) {
+    await prisma.article.update({
+      where: { id: article.id },
+      data: {
+        content: article.content.replaceAll(oldUrl, newUrl),
+        excerpt: article.excerpt?.replaceAll(oldUrl, newUrl) ?? article.excerpt,
+      }
+    })
+    updatedArticles++
+  }
+
+  // Remove o arquivo original após conversão bem-sucedida
+  try {
+    await unlink(originalPath)
+  } catch {
+    // Não é crítico se falhar ao remover o original
+  }
+
+  return { newUrl, updatedArticles }
+}
+

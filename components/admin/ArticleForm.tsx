@@ -6,6 +6,7 @@ import { SlugInput } from './SlugInput'
 import { Editor } from './Editor'
 import { saveArticle } from '@/app/(admin)/admin/artigos/actions'
 import type { ArticleStatus } from '@prisma/client'
+import { askGeminiReview } from '@/app/actions/ai'
 
 interface CategoriaCompact {
   id: string
@@ -39,6 +40,9 @@ export function ArticleForm({ article, categories, userRole, authorId }: FormPro
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
+  const [aiLoading, setAiLoading] = useState(false)
+  const [aiInstruction, setAiInstruction] = useState('Avalie o conteúdo reparando os erros ortográficos e coesão, alterando as menções da antiga empresa para TurboCloud e gere um resumo/slug adequados.')
+
   const [formData, setFormData] = useState<ArticleData>({
     id: article?.id,
     title: article?.title || '',
@@ -54,6 +58,30 @@ export function ArticleForm({ article, categories, userRole, authorId }: FormPro
 
   function handleChange(field: keyof ArticleData, value: any) {
     setFormData((prev) => ({ ...prev, [field]: value }))
+  }
+
+  async function handleAiReview() {
+    if (!formData.title && !formData.content) {
+      alert('Escreva pelo menos o título e conteúdo para que a IA possa avaliar.')
+      return
+    }
+    setAiLoading(true)
+    setError('')
+    try {
+      const response = await askGeminiReview(aiInstruction, formData.title, formData.slug, formData.excerpt, formData.content)
+      setFormData(prev => ({
+        ...prev,
+        title: response.title,
+        slug: response.slug,
+        excerpt: response.excerpt,
+        content: response.content
+      }))
+      alert('Revisão concluída com sucesso! Verifique os campos atualizados pelos olhos da IA.')
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setAiLoading(false)
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -76,6 +104,36 @@ export function ArticleForm({ article, categories, userRole, authorId }: FormPro
       
       {/* Coluna Principal (Conteúdo, Título) */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '24px' }}>
+        
+        {/* Helper IA */}
+        <div style={{ backgroundColor: 'rgba(0, 208, 132, 0.05)', padding: '24px', borderRadius: '12px', border: '1px solid var(--color-primary)', boxShadow: 'var(--shadow-sm)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+            <span style={{ fontSize: '20px' }}>✨</span>
+            <h2 style={{ fontSize: '16px', fontWeight: 700, margin: 0, color: 'var(--color-primary)' }}>Assistente IA (Gemini)</h2>
+          </div>
+          <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '16px' }}>
+            O Gemini pode analisar todo o conteúdo abaixo e reescrever partes conforme suas instruções antes de salvar. Ex: "Mude o nome da empresa para X e corrija os erros".
+          </p>
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+            <textarea
+              value={aiInstruction}
+              onChange={(e) => setAiInstruction(e.target.value)}
+              className="form-input"
+              style={{ flex: 1, minHeight: '60px', fontSize: '14px', borderColor: 'var(--color-primary)' }}
+              placeholder="Descreva o que a IA deve revisar..."
+            />
+            <button
+              type="button"
+              onClick={handleAiReview}
+              disabled={aiLoading}
+              className="button"
+              style={{ padding: '12px 24px', backgroundColor: 'var(--color-primary)', height: '60px', fontWeight: 'bold' }}
+            >
+              {aiLoading ? '⏳ Analisando...' : 'Revisar Conteúdo'}
+            </button>
+          </div>
+        </div>
+
         <div style={{ backgroundColor: 'var(--bg-card)', padding: '24px', borderRadius: '12px', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-sm)' }}>
           <div style={{ marginBottom: '20px' }}>
             <label className="form-label" style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600 }}>Título do artigo</label>

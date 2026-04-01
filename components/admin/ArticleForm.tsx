@@ -69,14 +69,27 @@ export function ArticleForm({ article, categories, userRole, authorId }: FormPro
     setError('')
     try {
       const response = await askGeminiReview(aiInstruction, formData.title, formData.slug, formData.excerpt, formData.content)
-      setFormData(prev => ({
-        ...prev,
+      
+      const updatedData = {
+        ...formData,
         title: response.title,
         slug: response.slug,
         excerpt: response.excerpt,
         content: response.content
-      }))
-      alert('Revisão concluída com sucesso! Verifique os campos atualizados pelos olhos da IA.')
+      }
+      
+      setFormData(updatedData)
+      
+      const result = await saveArticle({ ...updatedData, authorId })
+      alert('Revisão da IA concluída! Mudanças foram aplicadas e salvas automaticamente.')
+
+      if (!formData.id && result.articleId) {
+        // Se era um artigo novo, foi criado, então levamos direto pra URL fixa dele.
+        router.push(`/admin/artigos/${result.articleId}`)
+      } else {
+        // Se já era existente, basta um F5 pra remontar tudo certinho (incluindo imagens do editor)
+        window.location.reload()
+      }
     } catch (err: any) {
       setError(err.message)
     } finally {

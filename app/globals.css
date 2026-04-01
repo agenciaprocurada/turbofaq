@@ -18,6 +18,7 @@
 
   --color-border:         #e0e0e0;
   --color-border-focus:   #00d084;
+  --color-danger:         #dc2626;
 
   --shadow-sm:  0 2px 8px rgba(0, 0, 0, 0.06);
   --shadow-md:  0 4px 16px rgba(0, 0, 0, 0.08);

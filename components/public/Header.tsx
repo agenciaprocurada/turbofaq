@@ -10,8 +10,10 @@ export default function Header() {
             Turbo<span>Cloud</span> Ajuda
           </Link>
 
-          <div className="site-header__search">
-            <SearchBar />
+          <div className="site-header__center">
+            <div className="site-header__search">
+              <SearchBar />
+            </div>
           </div>
 
           <a

@@ -509,6 +509,13 @@ ol {
   align-items: center;
   gap: 20px;
   height: 64px;
+  justify-content: space-between;
+}
+
+.site-header__center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
 }
 
 .site-header__logo {
@@ -525,7 +532,7 @@ ol {
 }
 
 .site-header__search {
-  flex: 1;
+  width: 100%;
   max-width: 480px;
 }
 
@@ -579,15 +586,20 @@ ol {
 
 .site-header__back {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.8);
+  font-weight: 600;
+  color: var(--color-primary);
+  background: var(--color-accent);
   text-decoration: none;
   flex-shrink: 0;
   white-space: nowrap;
-  transition: color 0.2s;
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  transition: background 0.2s, color 0.2s;
 }
 
 .site-header__back:hover {
-  color: var(--color-accent);
+  background: var(--color-accent-dark);
+  color: var(--color-primary);
 }
 
 @media (max-width: 640px) {

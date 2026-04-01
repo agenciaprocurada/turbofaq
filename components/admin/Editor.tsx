@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Link from '@tiptap/extension-link'
@@ -11,6 +12,7 @@ interface EditorProps {
 }
 
 export function Editor({ content, onChange }: EditorProps) {
+  const [showHtml, setShowHtml] = useState(false)
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -166,10 +168,40 @@ export function Editor({ content, onChange }: EditorProps) {
           🖼️ Imagem
         </MenuButton>
 
+        <div style={{ flex: 1 }} />
+        <MenuButton 
+          isActive={showHtml}
+          onClick={() => {
+            if (showHtml) {
+              editor.commands.setContent(content)
+            }
+            setShowHtml(!showHtml)
+          }}
+          tooltip="Editar HTML Fonte"
+        >
+          {showHtml ? '</> Fechar HTML' : '</> Ver HTML'}
+        </MenuButton>
+
       </div>
       
       {/* Área de conteúdo do Editor */}
-      <EditorContent editor={editor} />
+      {showHtml ? (
+        <textarea
+          value={content}
+          onChange={(e) => onChange(e.target.value)}
+          style={{ 
+            minHeight: '400px', width: '100%', padding: '20px', 
+            fontFamily: 'monospace', fontSize: '13px', 
+            border: '1px solid var(--color-border)', 
+            borderRadius: '0 0 8px 8px', 
+            backgroundColor: 'var(--bg-card)', 
+            color: 'var(--text-primary)',
+            outline: 'none', resize: 'vertical'
+          }}
+        />
+      ) : (
+        <EditorContent editor={editor} />
+      )}
     </div>
   )
 }

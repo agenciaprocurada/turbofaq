@@ -66,7 +66,7 @@ export default async function HubPage() {
 
       <main className="page-content">
         <div className="container">
-          <section>
+          <section style={{ paddingTop: '48px' }}>
             <h2 className="section-title">Categorias</h2>
             {categories.length === 0 ? (
               <p style={{ color: 'var(--text-secondary)' }}>

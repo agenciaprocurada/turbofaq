@@ -186,6 +186,8 @@ export function UserList({ initialUsers, currentUserId }: { initialUsers: UserIt
                   onChange={(v) => setEditingUser(prev => prev ? { ...prev, password: v } : null)}
                   required={!editingUser?.id}
                   autoComplete="new-password"
+                  placeholder="••••••••"
+                  visiblePlaceholder={editingUser?.id ? '(campo vazio = senha não alterada)' : ''}
                 />
               </div>
 

@@ -9,6 +9,7 @@ interface PasswordInputProps {
   required?: boolean
   autoComplete?: string
   placeholder?: string
+  visiblePlaceholder?: string
   className?: string
 }
 
@@ -19,6 +20,7 @@ export function PasswordInput({
   required,
   autoComplete = 'current-password',
   placeholder = '••••••••',
+  visiblePlaceholder = '',
   className = 'form-input',
 }: PasswordInputProps) {
   const [showPassword, setShowPassword] = useState(false)
@@ -33,7 +35,7 @@ export function PasswordInput({
         required={required}
         autoComplete={autoComplete}
         className={className}
-        placeholder={placeholder}
+        placeholder={showPassword ? visiblePlaceholder : placeholder}
         style={{ paddingRight: '44px' }}
       />
       <button

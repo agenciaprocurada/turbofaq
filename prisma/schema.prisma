@@ -55,11 +55,24 @@ model Article {
   updatedAt   DateTime      @updatedAt
   author      User          @relation("ArticleAuthor", fields: [authorId], references: [id])
   category    Category      @relation(fields: [categoryId], references: [id])
+  highlights  Highlight[]
 
   @@index([categoryId])
   @@index([slug])
   @@index([status])
   @@map("articles")
+}
+
+model Highlight {
+  id        String   @id @default(cuid())
+  imageUrl  String
+  articleId String
+  order     Int      @default(0)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@map("highlights")
 }
 
 enum ArticleStatus {

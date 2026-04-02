@@ -8,6 +8,7 @@ import SearchBar from '@/components/public/SearchBar'
 import JsonLd from '@/components/public/JsonLd'
 import { buildHubMetadata } from '@/lib/seo'
 import { siteLinksSearchBoxSchema } from '@/lib/schema'
+import { HighlightsBanner } from '@/components/public/HighlightsBanner'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,7 +19,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HubPage() {
-  const [categories, featuredArticles] = await Promise.all([
+  const [categories, featuredArticles, highlights] = await Promise.all([
     prisma.category.findMany({
       where: { active: true },
       orderBy: { order: 'asc' },
@@ -44,6 +45,11 @@ export default async function HubPage() {
         category: { select: { slug: true, name: true } },
       },
     }),
+    prisma.highlight.findMany({
+      where: { active: true },
+      orderBy: { order: 'asc' },
+      include: { article: { select: { title: true, slug: true, category: { select: { slug: true } } } } }
+    }),
   ])
 
   return (
@@ -66,7 +72,13 @@ export default async function HubPage() {
 
       <main className="page-content">
         <div className="container">
-          <section style={{ paddingTop: '48px' }}>
+          {highlights.length > 0 && (
+            <div style={{ paddingTop: '48px' }}>
+              <HighlightsBanner highlights={highlights} />
+            </div>
+          )}
+
+          <section style={{ paddingTop: highlights.length > 0 ? '0' : '48px' }}>
             <h2 className="section-title">Categorias</h2>
             {categories.length === 0 ? (
               <p style={{ color: 'var(--text-secondary)' }}>

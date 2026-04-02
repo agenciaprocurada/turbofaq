@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { signIn } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
+import { PasswordInput } from '@/components/admin/PasswordInput'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -117,15 +118,12 @@ export default function LoginPage() {
             <label className="form-label" htmlFor="password">
               Senha
             </label>
-            <input
+            <PasswordInput
               id="password"
-              type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={setPassword}
               required
               autoComplete="current-password"
-              className="form-input"
-              placeholder="••••••••"
             />
           </div>
 

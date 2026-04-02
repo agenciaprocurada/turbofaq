@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { saveUser } from '@/app/(admin)/admin/usuarios/actions'
 import type { UserRole } from '@prisma/client'
+import { PasswordInput } from '@/components/admin/PasswordInput'
 
 type UserItem = {
   id: string
@@ -180,13 +181,11 @@ export function UserList({ initialUsers, currentUserId }: { initialUsers: UserIt
                 <label className="form-label" style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600 }}>
                   {editingUser?.id ? 'Nova Senha (deixe em branco para não alterar)' : 'Senha de Acesso'}
                 </label>
-                <input
-                  type="password"
-                  className="form-input"
+                <PasswordInput
                   value={editingUser?.password || ''}
-                  onChange={(e) => setEditingUser(prev => prev ? { ...prev, password: e.target.value } : null)}
+                  onChange={(v) => setEditingUser(prev => prev ? { ...prev, password: v } : null)}
                   required={!editingUser?.id}
-                  placeholder="••••••••"
+                  autoComplete="new-password"
                 />
               </div>
 

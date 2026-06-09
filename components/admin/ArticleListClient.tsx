@@ -140,9 +140,12 @@ export function ArticleListClient({ articles }: { articles: ArticleClientProps[]
                     />
                   </td>
                   <td style={{ padding: '12px 16px', maxWidth: '300px' }}>
-                    <div style={{ fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <Link
+                      href={`/admin/artigos/${article.id}`}
+                      style={{ fontWeight: 600, color: 'var(--text-primary)', textDecoration: 'none', display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                    >
                       {article.title}
-                    </div>
+                    </Link>
                     {article.excerpt && (
                       <div style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {article.excerpt}

@@ -184,7 +184,7 @@ export default function ScraperPanel({ categories }: { categories: { id: string;
                  type="button"
                  onClick={applyMasterCategory}
                  className="button"
-                 style={{ padding: '6px 12px', height: 'auto', fontSize: '12px', backgroundColor: 'var(--color-primary)' }}
+                 style={{ padding: '6px 12px', height: 'auto', fontSize: '12px', backgroundColor: 'var(--color-primary)', color: '#fff' }}
                  disabled={isImporting || !masterCategoryId}
                >
                  Aplicar a Todos
@@ -222,7 +222,7 @@ export default function ScraperPanel({ categories }: { categories: { id: string;
                      <input type="checkbox" checked={link.selected} onChange={() => handleToggleRow(index)} disabled={isImporting} />
                   </div>
                   <div style={{ flex: 2, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                     <span style={{ fontSize: '14px', fontWeight: 600, color: link.selected ? '#fff' : 'var(--text-secondary)' }}>
+                     <span style={{ fontSize: '14px', fontWeight: 600, color: link.selected ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
                         {getFriendlyName(link.url)}
                      </span>
                      <span style={{ fontSize: '11px', color: 'var(--text-secondary)', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
@@ -250,7 +250,7 @@ export default function ScraperPanel({ categories }: { categories: { id: string;
             <button 
               onClick={handleImportSelected} 
               className="button"
-              style={{ backgroundColor: 'var(--color-primary)', padding: '14px 32px', fontSize: '15px', fontWeight: 'bold' }}
+              style={{ backgroundColor: 'var(--color-primary)', color: '#fff', padding: '14px 32px', fontSize: '15px', fontWeight: 'bold' }}
               disabled={isImporting || links.filter(l => l.selected).length === 0}
             >
               {isImporting ? '⏳ Puxando Conteúdos...' : `⚡ Importar ${links.filter(l => l.selected).length} itens como Rascunhos`}
@@ -294,7 +294,7 @@ export default function ScraperPanel({ categories }: { categories: { id: string;
                   <span style={{ color: 'var(--color-danger)', fontWeight: 'bold', fontSize: '18px' }}>✕</span>
                 )}
                 <div style={{ flex: 1 }}>
-                  <strong style={{ color: res.success ? '#fff' : 'var(--text-secondary)' }}>{res.title}</strong>
+                  <strong style={{ color: res.success ? 'var(--text-primary)' : 'var(--text-secondary)' }}>{res.title}</strong>
                   {!res.success && (
                     <div style={{ color: 'var(--color-danger)', fontSize: '12px', marginTop: '4px' }}>
                       <strong>Falha de código:</strong> {res.error}

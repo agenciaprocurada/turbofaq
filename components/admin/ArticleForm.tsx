@@ -69,15 +69,20 @@ export function ArticleForm({ article, categories, userRole, authorId }: FormPro
     setError('')
     try {
       const response = await askGeminiReview(aiInstruction, formData.title, formData.slug, formData.excerpt, formData.content)
-      
+
+      if (response.ok === false) {
+        setError(response.error)
+        return
+      }
+
       const updatedData = {
         ...formData,
-        title: response.title,
-        slug: response.slug,
-        excerpt: response.excerpt,
-        content: response.content
+        title: response.data.title,
+        slug: response.data.slug,
+        excerpt: response.data.excerpt,
+        content: response.data.content
       }
-      
+
       setFormData(updatedData)
       
       const result = await saveArticle({ ...updatedData, authorId })

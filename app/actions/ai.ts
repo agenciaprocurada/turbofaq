@@ -3,21 +3,32 @@
 import { auth } from '@/lib/auth'
 import { GoogleGenAI, Type, Schema } from '@google/genai'
 
-export async function askGeminiReview(
-  instructions: string, 
-  title: string, 
-  slug: string, 
-  excerpt: string, 
+interface GeminiReviewData {
+  title: string
+  slug: string
+  excerpt: string
   content: string
-) {
+}
+
+type GeminiReviewResult =
+  | { ok: true; data: GeminiReviewData }
+  | { ok: false; error: string }
+
+export async function askGeminiReview(
+  instructions: string,
+  title: string,
+  slug: string,
+  excerpt: string,
+  content: string
+): Promise<GeminiReviewResult> {
   const session = await auth()
   if (!session || session.user.role === 'VIEWER') {
-    throw new Error('Não autorizado')
+    return { ok: false, error: 'Não autorizado.' }
   }
 
   const apiKey = process.env.GEMINI_API_KEY
   if (!apiKey) {
-    throw new Error('Chave de API do Gemini não configurada no servidor (GEMINI_API_KEY).')
+    return { ok: false, error: 'Chave de API do Gemini não configurada no servidor (GEMINI_API_KEY).' }
   }
 
   const ai = new GoogleGenAI({ apiKey })
@@ -81,11 +92,18 @@ Sempre garanta que o retorno siga fielmente em Português do Brasil (PT-BR) a n�
     })
 
     if (!result.text) {
-      throw new Error('Resposta vazia da IA')
+      return { ok: false, error: 'A IA retornou uma resposta vazia. Tente novamente ou reduza o tamanho do conteúdo.' }
     }
 
-    return JSON.parse(result.text)
+    let parsed: GeminiReviewData
+    try {
+      parsed = JSON.parse(result.text)
+    } catch {
+      return { ok: false, error: 'A IA retornou um JSON inválido (resposta possivelmente truncada por excesso de conteúdo).' }
+    }
+
+    return { ok: true, data: parsed }
   } catch (err: any) {
-    throw new Error('Falha na comunicação com a API do Gemini: ' + err.message)
+    return { ok: false, error: 'Falha na comunicação com a API do Gemini: ' + (err?.message ?? String(err)) }
   }
 }

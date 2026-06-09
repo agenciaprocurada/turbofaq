@@ -41,7 +41,7 @@ export function ArticleForm({ article, categories, userRole, authorId }: FormPro
   const [error, setError] = useState('')
 
   const [aiLoading, setAiLoading] = useState(false)
-  const [aiInstruction, setAiInstruction] = useState('Avalie o conteúdo reparando os erros ortográficos e coesão, alterando as menções da antiga empresa para TurboCloud e gere um resumo/slug adequados.')
+  const [aiInstruction, setAiInstruction] = useState('Avalie o conteúdo reparando os erros ortográficos e coesão, mudando a forma de escrita para não parecer uma copia sem alterar o sentido do conteúdo, alterando junto as menções da antiga empresa para TurboCloud e gere um resumo/slug adequados. Jamais remova as imagens ou links de imagens externas.')
 
   const [formData, setFormData] = useState<ArticleData>({
     id: article?.id,
@@ -145,7 +145,7 @@ export function ArticleForm({ article, categories, userRole, authorId }: FormPro
               onClick={handleAiReview}
               disabled={aiLoading}
               className="button"
-              style={{ padding: '12px 24px', backgroundColor: 'var(--color-primary)', height: '60px', fontWeight: 'bold' }}
+              style={{ padding: '12px 24px', backgroundColor: 'var(--color-primary)', color: '#fff', height: '60px', fontWeight: 'bold', whiteSpace: 'nowrap', borderRadius: '8px', border: 'none' }}
             >
               {aiLoading ? '⏳ Analisando...' : 'Revisar Conteúdo'}
             </button>

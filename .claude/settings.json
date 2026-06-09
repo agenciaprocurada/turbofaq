@@ -19,7 +19,15 @@
       "Bash(node -e \"const p=require\\('./package.json'\\); console.log\\('@google/genai:', \\(p.dependencies||{}\\)['@google/genai'] || \\(p.devDependencies||{}\\)['@google/genai']\\)\")",
       "Bash(git commit -m 'fix: revisao IA Gemini retorna erro estruturado em vez de lancar excecao *)",
       "Bash(git commit -m 'fix: retry com backoff para sobrecarga \\(503\\) na revisao IA Gemini *)",
-      "Bash(git commit -m 'chore: atualiza allowlist de permissoes do Claude Code *)"
+      "Bash(git commit -m 'chore: atualiza allowlist de permissoes do Claude Code *)",
+      "Bash(node -e \"try{console.log\\('prisma datasource via', require\\('./package.json'\\).prisma||'n/a'\\)}catch\\(e\\){}\")",
+      "Bash(node -e \"try{require.resolve\\('dotenv'\\);console.log\\('dotenv: yes'\\)}catch{console.log\\('dotenv: no'\\)}\")",
+      "Bash(node -e \"try{require.resolve\\('@prisma/client'\\);console.log\\('prisma client: yes'\\)}catch{console.log\\('prisma client: no'\\)}\")",
+      "Bash(npx tsx *)",
+      "Bash(node -e \"const s='Configuração de Domínio: Caça-Níquel'; console.log\\(s.normalize\\('NFD'\\).replace\\(/[̀-ͯ]/g,''\\).toLowerCase\\(\\).replace\\(/[^a-z0-9]+/g,'-'\\).replace\\(/^-+|-+\\\\$/g,''\\).slice\\(0,80\\)\\)\")",
+      "Bash(node --env-file=.env --env-file=.env.local -e \"console.log\\(Object.keys\\(process.env\\).filter\\(k=>/GEMINI|GOOGLE|GENAI|AI_|API/i.test\\(k\\)\\).join\\('\\\\n'\\) || 'nenhuma var com GEMINI/GOOGLE/AI/API'\\)\")",
+      "Bash(git check-ignore *)",
+      "Bash(git commit -m 'fix: contraste do botao Revisar Conteudo e atualiza prompt padrao da IA *)"
     ]
   }
 }

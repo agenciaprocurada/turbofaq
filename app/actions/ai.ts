@@ -80,30 +80,63 @@ Sempre garanta que o retorno siga fielmente em Português do Brasil (PT-BR) a n�
     required: ['title', 'slug', 'excerpt', 'content'],
   }
 
-  try {
-    const result = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: prompt,
-      config: {
-        responseMimeType: 'application/json',
-        responseSchema: responseSchema,
-        temperature: 0.2, // Precisão e menos invenção proativa
-      }
-    })
+  // Códigos transitórios do Gemini que valem nova tentativa (sobrecarga/limite temporário)
+  const RETRYABLE = [429, 500, 503]
+  const MAX_ATTEMPTS = 4
 
-    if (!result.text) {
-      return { ok: false, error: 'A IA retornou uma resposta vazia. Tente novamente ou reduza o tamanho do conteúdo.' }
-    }
-
-    let parsed: GeminiReviewData
-    try {
-      parsed = JSON.parse(result.text)
-    } catch {
-      return { ok: false, error: 'A IA retornou um JSON inválido (resposta possivelmente truncada por excesso de conteúdo).' }
-    }
-
-    return { ok: true, data: parsed }
-  } catch (err: any) {
-    return { ok: false, error: 'Falha na comunicação com a API do Gemini: ' + (err?.message ?? String(err)) }
+  function isRetryable(err: any) {
+    const msg = err?.message ?? String(err)
+    return RETRYABLE.some((code) => msg.includes(String(code)) || msg.includes('UNAVAILABLE') || msg.includes('overloaded'))
   }
+
+  let lastErr: any = null
+
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      const result = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: prompt,
+        config: {
+          responseMimeType: 'application/json',
+          responseSchema: responseSchema,
+          temperature: 0.2, // Precisão e menos invenção proativa
+        }
+      })
+
+      if (!result.text) {
+        return { ok: false, error: 'A IA retornou uma resposta vazia. Tente novamente ou reduza o tamanho do conteúdo.' }
+      }
+
+      let parsed: GeminiReviewData
+      try {
+        parsed = JSON.parse(result.text)
+      } catch {
+        return { ok: false, error: 'A IA retornou um JSON inválido (resposta possivelmente truncada por excesso de conteúdo).' }
+      }
+
+      return { ok: true, data: parsed }
+    } catch (err: any) {
+      lastErr = err
+
+      // Só insiste em erros transitórios e enquanto houver tentativas restantes
+      if (attempt < MAX_ATTEMPTS && isRetryable(err)) {
+        // Backoff exponencial com jitter: ~0.8s, 1.6s, 3.2s
+        const delay = 800 * 2 ** (attempt - 1) + Math.random() * 400
+        await new Promise((resolve) => setTimeout(resolve, delay))
+        continue
+      }
+
+      break
+    }
+  }
+
+  const rawMsg = lastErr?.message ?? String(lastErr)
+  if (isRetryable(lastErr)) {
+    return {
+      ok: false,
+      error: 'O modelo do Gemini está sobrecarregado no momento (alta demanda). Tentamos novamente algumas vezes sem sucesso — aguarde um instante e clique em "Revisar Conteúdo" de novo.',
+    }
+  }
+
+  return { ok: false, error: 'Falha na comunicação com a API do Gemini: ' + rawMsg }
 }

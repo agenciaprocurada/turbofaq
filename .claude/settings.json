@@ -13,7 +13,13 @@
       "Bash(Stop-Process -Force)",
       "Bash(Remove-Item -Recurse -Force .next -ErrorAction SilentlyContinue)",
       "Bash(taskkill /F /IM node.exe)",
-      "Bash(cat \"c:/Users/agenc/meusprojetos/turbofaq/.next/server/app/\\(public\\)/page.html\")"
+      "Bash(cat \"c:/Users/agenc/meusprojetos/turbofaq/.next/server/app/\\(public\\)/page.html\")",
+      "Bash(git commit -m '@ *)",
+      "Bash(git commit --amend -m 'fix: corrige legibilidade no scraper e torna titulo do artigo clicavel *)",
+      "Bash(node -e \"const p=require\\('./package.json'\\); console.log\\('@google/genai:', \\(p.dependencies||{}\\)['@google/genai'] || \\(p.devDependencies||{}\\)['@google/genai']\\)\")",
+      "Bash(git commit -m 'fix: revisao IA Gemini retorna erro estruturado em vez de lancar excecao *)",
+      "Bash(git commit -m 'fix: retry com backoff para sobrecarga \\(503\\) na revisao IA Gemini *)",
+      "Bash(git commit -m 'chore: atualiza allowlist de permissoes do Claude Code *)"
     ]
   }
 }
